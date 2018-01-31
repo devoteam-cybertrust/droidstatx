@@ -113,3 +113,5 @@ Right now, this standalone module is being released as a quick win, but sometime
 Based on the work started on 2015, and since I wanted to learn and improve my understanding of Dalvik Bytecode, I created all the static checks from scratch, following my own thinking/approach. Other tools’ approaches will differ.
 
 That being said, I've tested the tool against the top 30 applications in the Play Store, around 60 other applications, including several vulnerable applications created for the effect, and manually performed the review on all of them to try and guarantee the tool’s accuracy and completeness but there may exist scenarios where the tool will not behave correctly; if you find any bugs, or incorrect or missing information,please create an Issue on the project.
+
+Thanks @hdontwit, @pipasnacave, @morisson, zav and pmsac for the help and inputs.  
