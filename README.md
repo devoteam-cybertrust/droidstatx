@@ -114,4 +114,4 @@ Based on the work started on 2015, and since I wanted to learn and improve my un
 
 That being said, I've tested the tool against the top 30 applications in the Play Store, around 60 other applications, including several vulnerable applications created for the effect, and manually performed the review on all of them to try and guarantee the tool’s accuracy and completeness but there may exist scenarios where the tool will not behave correctly; if you find any bugs, or incorrect or missing information,please create an Issue on the project.
 
-Thanks @hdontwit, @pipasnacave, @morisson, zav and pmsac for the help and inputs.  
+Thanks @Dcrypt3d, @hdontwit, @pipasnacave, @morisson, zav and pmsac for the inputs.  
