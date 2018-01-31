@@ -84,13 +84,13 @@ Each time the tool runs against a package, if the xmind map already exists,a new
   * Usage of Javascript Enabled
   * Usage of fileAccess Enabled
 * TLS Security Related Evidences Checks
- * Vulnerable TrustManagers
- * Vulnerable HostnameVerifiers
- * Webviews Vulnerable onReceivedSslError Method
- * Direct usage of Socket without HostnameVerifier
+  * Vulnerable TrustManagers
+  * Vulnerable HostnameVerifiers
+  * Webviews Vulnerable onReceivedSslError Method
+  * Direct usage of Socket without HostnameVerifier
 * Cryptography Security Related Evidences Checks
- * Usage of AES with ECB
- * Usage of DES or 3DES
+  * Usage of AES with ECB
+  * Usage of DES or 3DES
 
 **Under the Hood**
 
