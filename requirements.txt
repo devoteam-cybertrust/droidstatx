@@ -1,0 +1,2 @@
+git+https://github.com/clviper/xmind-sdk-python.git#egg=xmind
+git+https://github.com/androguard/androguard.git#egg=androguard
