@@ -71,9 +71,9 @@ Each time the tool runs against a package, if the xmind map already exists,a new
 * Exported Components with respective intent-filters and permissions
 * Package Files (some extensions are filtered by default;configurable.)
 * Object Usage
- * WebViews loadUrl
- * Cryptographic Functions
- * Custom Checks (configurable.)
+  * WebViews loadUrl
+  * Cryptographic Functions
+  * Custom Checks (configurable.)
 * Components Security Related Evidences Checks
   * Fragment Injection
   * Lack of FLAG_SECURE or android:excludeFromRecents in activities 
