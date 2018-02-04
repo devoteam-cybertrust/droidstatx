@@ -543,7 +543,7 @@ class App:
 
   def bakmali(self,apkFile):
       cwd = os.path.dirname(os.path.realpath(__file__))
-      apktool = Popen(["java","-jar",cwd+"/apktool.jar", "d", "-q","-b", "-f", apkFile, "-o", cwd+"/output_apktool/"+self.a.get_package()+"_"+self.a.get_androidversion_code()+"/"], stdout=PIPE)
+      apktool = Popen(["java","-jar",cwd+"/apktool.jar", "d","-b", "-f", apkFile, "-o", cwd+"/output_apktool/"+self.a.get_package()+"_"+self.a.get_androidversion_code()+"/"], stdout=PIPE)
       output = apktool.communicate()[0]
       numberOfDexFiles = output.count("Baksmaling")
       if numberOfDexFiles > 1:
