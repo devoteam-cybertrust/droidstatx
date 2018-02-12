@@ -40,8 +40,10 @@ class App:
   cordovaPlugins = []
   isAppXamarin = False
   xamarinMKBundled = False
+  xamarinBundledFile = ""
   isAppCordova = False
   isAppOutsystems = False
+  hasNetworkSecurityConfig = False
   minSDKVersion= ""
   targetSDKVersion = ""
   versionCode= ""
@@ -111,6 +113,11 @@ class App:
         self.allowBackup = False
     except KeyError:
         self.allowBackup = True
+    try:
+      if self.application.get(self.NS_ANDROID+"networkSecurityConfig") is not None:
+        self.hasNetworkSecurityConfig = True
+    except KeyError:
+      pass
 
   # Create the list of permissions used by the package
 
@@ -400,6 +407,9 @@ class App:
     else:
       return "No"
 
+  def hasNetworkSecurityConfig(self):
+    return self.hasNetworkSecurityConfig
+
   def isMultiDex(self):
     if len(self.getDexFiles()) > 1:
         return "Yes"
@@ -450,11 +460,11 @@ class App:
     try:
       for f in files:
         if self.isInExclusions(f) == False :
+          try:
+            f.encode("ascii")
+          except UnicodeEncodeError, e:
+            f = f.encode('ascii', 'xmlcharrefreplace')
           if "assets/www/" in f:
-            try:
-              f.encode("ascii")
-            except UnicodeEncodeError, e:
-              f = f.encode('ascii', 'xmlcharrefreplace')
             if "assets/www/cordova.js" in f:
               self.isAppCordova = True
             if "assets/www/plugins/" in f:
@@ -463,47 +473,25 @@ class App:
               item = f[beginPos:endPos]
               self.cordovaPlugins.append(item) if item not in self.cordovaPlugins else None
             self.cordova.append(f)
-
           elif f[0:4] == "lib/":
-            try:
-              f.encode("ascii")
-            except UnicodeEncodeError, e:
-              f = f.encode('ascii', 'xmlcharrefreplace')
             self.libs.append(f)
             if 'libmonodroid_bundle_app.so' in f:
               self.isAppXamarin = True
               self.xamarinMKBundled = True
+              self.xamarinBundledFile = f
+              print "[-] Extracting Dll's from bundled file."
+              self.unbundleXamarinDlls()
           elif f[0:11] == "assemblies/" in f:
-            try:
-              f.encode("ascii")
-            except UnicodeEncodeError, e:
-              f = f.encode('ascii', 'xmlcharrefreplace')
             self.assemblies.append(f)
             if 'Xamarin.' in f and self.isAppXamarin == False:
               self.isAppXamarin = True
           elif "assets/" in f:
-            try:
-              f.encode("ascii")
-            except UnicodeEncodeError, e:
-              f = f.encode('ascii', 'xmlcharrefreplace')
             self.assets.append(f)
           elif "res/raw/" in f:
-            try:
-              f.encode("ascii")
-            except UnicodeEncodeError, e:
-              f = f.encode('ascii', 'xmlcharrefreplace')
             self.rawResources.append(f)
           elif ".dex" in f:
-            try:
-              f.encode("ascii")
-            except UnicodeEncodeError, e:
-              f = f.encode('ascii', 'xmlcharrefreplace')
             self.dexFiles.append(f)
           else:
-            try:
-              f.encode("ascii")
-            except UnicodeEncodeError, e:
-              f = f.encode('ascii', 'xmlcharrefreplace')
             self.otherFiles.append(f)
     except UnicodeDecodeError,e:
       pass
@@ -536,14 +524,13 @@ class App:
 
   #Run apktool on the package with the options
   #  d : Decompile
-  # -q : Quiet
   # -b : Don't write out debug info
   # -f : Force rewrite
   # -o : Output folder
 
   def bakmali(self,apkFile):
       cwd = os.path.dirname(os.path.realpath(__file__))
-      apktool = Popen(["java","-jar",cwd+"/apktool.jar", "d", "-q","-b", "-f", apkFile, "-o", cwd+"/output_apktool/"+self.a.get_package()+"_"+self.a.get_androidversion_code()+"/"], stdout=PIPE)
+      apktool = Popen(["java","-jar",cwd+"/apktool.jar", "d","-b", "-f", apkFile, "-o", cwd+"/output_apktool/"+self.a.get_package()+"_"+self.a.get_androidversion_code()+"/"], stdout=PIPE)
       output = apktool.communicate()[0]
       numberOfDexFiles = output.count("Baksmaling")
       if numberOfDexFiles > 1:
@@ -556,3 +543,37 @@ class App:
         path = cwd+"/output_apktool/" + self.a.get_package()+"_"+self.a.get_androidversion_code() + "/smali/"
         self.baksmaliPaths.append(path)
       self.smaliChecks = SmaliChecks(self.baksmaliPaths)
+
+  def unbundleXamarinDlls(self):
+    bundledFile = self.xamarinBundledFile
+    command = ["objdump", "-T", "-x", "-j", ".rodata",bundledFile]
+    objdump = Popen(command, stdout=PIPE)
+    sed = Popen(["sed", "-e", "1,/DYNAMIC SYMBOL TABLE/ d"], stdin=objdump.stdout, stdout=PIPE)
+    dlls = []
+    for line in sed.stdout:
+      if len(line.strip().split()) > 0:
+        dlls.append(line.strip().split())
+    for dll in dlls:
+      if "config" not in dll[6]:
+        skip = int(dll[0], 16)
+        length = int(dll[4], 16)
+        name = dll[6]
+        command = ["dd", "iflag=skip_bytes", "bs=1",
+                   "if="+bundledFile,
+                   "skip=" + str(skip), "count=" + str(length),
+                   "of=/tools/mobile/android/droidstat-x/output_dlls/tmp/" + name + ".gz"]
+        dd = Popen(command, stdout=PIPE)
+        try:
+          gzip = Popen(["gzip", "-d"], stdin=dd.stdout, stdout=PIPE)
+        except IOError:
+          continue
+        if "records in" in dd.stderr.readline():
+          try:
+            with gzip.open("/tools/mobile/android/droidstat-x/output_dlls/tmp/" + name + ".gz", 'rb') as f:
+              content = f.read()
+              new_dll = open(
+                "/tools/mobile/android/droidstat-x/output_dlls/" + name.replace("assembly_data_", "").replace("_", "."), "w")
+              new_dll.write(content)
+              new_dll.close()
+          except IOError:
+            continue

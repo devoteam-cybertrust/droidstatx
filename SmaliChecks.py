@@ -17,8 +17,11 @@ class SmaliChecks:
     encryptionFunctionsLocation = []
     decryptionFunctionsLocation = []
     undeterminedCryptographicFunctionsLocation = []
+    keystoreLocations = []
     webViewLoadUrlUsageLocation = []
     webViewAddJavascriptInterfaceUsageLocation = []
+    okHttpCertificatePinningLocation = []
+    customCertifificatePinningLocation = []
     AESwithECBLocations = []
     DESLocations =[]
     javascriptEnabledWebviews = []
@@ -40,6 +43,9 @@ class SmaliChecks:
         self.findWebViewLoadUrlUsage()
         self.findCustomChecks()
         self.findPropertyEnabledWebViews()
+        self.checkOKHttpCertificatePinning()
+        self.checkCustomPinningImplementation()
+        self.findKeystoreUsage()
 
     def getSmaliPaths(self):
         return self.smaliPaths
@@ -85,19 +91,18 @@ class SmaliChecks:
 
     def isMethodEmpty(self,instructions):
         for i in range(len(instructions)-1,0,-1):
-            if instructions[i] == "return-void":
-                return True
-            else:
+            if instructions[i] == '.end method':
                 continue
-        return False
-
-    def hasOperationProceed(self,instructions):
-        for i in range(len(instructions) - 1, 0, -1):
-            if instructions[i] == "return-void":
-                if i-2 >= 0 and 'Landroid/webkit/SslErrorHandler;->proceed()V' in instructions[i-2]:
+            else:
+                if instructions[i] == "return-void":
                     return True
                 else:
                     return False
+
+    def hasOperationProceed(self,instructions):
+        for i in range(len(instructions) - 1, 0, -1):
+            if 'Landroid/webkit/SslErrorHandler;->proceed()V' in instructions[i]:
+                return True
             else:
                 continue
         return False
@@ -207,7 +212,10 @@ class SmaliChecks:
     def findRegistersPassedToFunction(self,functionInstruction):
         match = re.search(r"{(.*)}", functionInstruction)
         try:
-            registers = str(match.group(1)).strip().replace(' ','').split(",")
+            if "range" in functionInstruction:
+                registers = str(match.group(1)).strip().replace(' ', '').split("..")
+            else:
+                registers = str(match.group(1)).strip().replace(' ','').split(",")
         except:
             match = re.search(r"\D\d", functionInstruction)
             try:
@@ -232,6 +240,8 @@ class SmaliChecks:
         encryptionFunctionsLocations = self.checkForExistenceInFolder("invoke-virtual {(.*)}, Ljavax\/crypto\/Cipher;->init\(ILjava\/security\/Key",self.getSmaliPaths())
         if encryptionFunctionsLocations[0] != "":
             for location in encryptionFunctionsLocations:
+                if "org/bouncycastle" in location:
+                    continue
                 instructions = self.getFileContent(location)
                 indexList = self.findInstructionIndex(instructions,"Ljavax/crypto/Cipher;->init\(ILjava/security/Key")
                 if len(indexList) != 0:
@@ -245,6 +255,11 @@ class SmaliChecks:
                             if location not in self.undeterminedCryptographicFunctionsLocation:
                                 self.undeterminedCryptographicFunctionsLocation.append(location)
 
+    def findKeystoreUsage(self):
+        keystoreUsageLocations = self.checkForExistenceInFolder("invoke-virtual {(.*)}, Ljava\/security\/KeyStore;->getEntry\(Ljava\/lang\/String;Ljava\/security\/KeyStore\$ProtectionParameter;\)Ljava\/security\/KeyStore\$Entry",self.getSmaliPaths())
+        if keystoreUsageLocations[0] != "":
+            for location in keystoreUsageLocations:
+                self.keystoreLocations.append(location)
 
     def findWebViewLoadUrlUsage(self):
         webViewUsageLocations = self.checkForExistenceInFolder("Landroid\/webkit\/WebView;->loadUrl\(Ljava\/lang\/String;\)V",self.getSmaliPaths())
@@ -322,13 +337,10 @@ class SmaliChecks:
     #Check for the presence of the custom function that allows to bypass SSL errors in WebViews
 
     def checkWebviewSSLErrorBypass(self):
-        webviewErrorBypassLocations = self.checkForExistenceInFolder(".method public onReceivedSslError\(Landroid\/webkit\/WebView;Landroid\/webkit\/SslErrorHandler;Landroid\/net\/http\/SslError;\)V",self.getSmaliPaths())
+        webviewErrorBypassLocations = self.checkForExistenceInFolder("Landroid\/webkit\/SslErrorHandler;->proceed\(\)V",self.getSmaliPaths())
         if webviewErrorBypassLocations[0] != '':
             for location in webviewErrorBypassLocations:
-                methodInstructions = self.getMethodCompleteInstructions('/.method public onReceivedSslError(Landroid\/webkit\/WebView;Landroid\/webkit\/SslErrorHandler;Landroid\/net\/http\/SslError;)V/,/^.end method/p',location)
-                if methodInstructions != "":
-                    if self.hasOperationProceed(methodInstructions) == True:
-                        self.vulnerableWebViewSSLErrorBypass.append(location)
+                self.vulnerableWebViewSSLErrorBypass.append(location)
 
     #Check for the presence of custom TrustManagers that are vulnerable.
 
@@ -358,7 +370,7 @@ class SmaliChecks:
     #Check for the presence of setHostnameVerifier with ALLOW_ALL_HOSTNAME_VERIFIER
 
     def checkVulnerableHostnameVerifiers(self):
-        setHostnameVerifierLocations = self.checkForExistenceInFolder("invoke-virtual {\D\d, \D\d}, Lorg\/apache\/http\/conn\/ssl\/SSLSocketFactory;->setHostnameVerifier\(Lorg\/apache\/http\/conn\/ssl\/X509HostnameVerifier;\)V",self.getSmaliPaths())
+        setHostnameVerifierLocations = self.checkForExistenceInFolder("invoke-virtual {(.*)}, Lorg\/apache\/http\/conn\/ssl\/SSLSocketFactory;->setHostnameVerifier\(Lorg\/apache\/http\/conn\/ssl\/X509HostnameVerifier;\)V",self.getSmaliPaths())
         if setHostnameVerifierLocations[0] != "":
             for location in setHostnameVerifierLocations:
                 instructions = self.getFileContent(location)
@@ -379,6 +391,31 @@ class SmaliChecks:
                 indexList = self.findInstructionIndex(instructions,"Ljavax/net/ssl/HostnameVerifier;->verify\(Ljava/lang/String;Ljavax/net/ssl/SSLSession;\)Z")
                 if len(indexList) == 0:
                     self.vulnerableSocketsLocations.append(location)
+
+    #Check for the implementation of OKHttp Certificate Pinning
+
+    def checkOKHttpCertificatePinning(self):
+        okHttpCertificatePinningLocations = self.checkForExistenceInFolder("add\(Ljava\/lang\/String;\[Ljava\/lang\/String;\)Lokhttp3\/CertificatePinner\$Builder",self.getSmaliPaths())
+        if okHttpCertificatePinningLocations[0] != '':
+            for location in okHttpCertificatePinningLocations:
+                #Bypass library files
+                if "/okhttp" in location:
+                    continue
+                instructions = self.getFileContent(location)
+                indexList = self.findInstructionIndex(instructions,"certificatePinner\(Lokhttp3/CertificatePinner;\)Lokhttp3/OkHttpClient$Builder;")
+                if len(indexList) == 0:
+                    self.okHttpCertificatePinningLocation.append(location)
+
+    #Check for custom Certificate Pinning Implementation
+
+    def checkCustomPinningImplementation(self):
+        customCertificatePinningLocations = self.checkForExistenceInFolder("invoke-virtual {(.*)}, Ljavax\/net\/ssl\/TrustManagerFactory;->init\(Ljava\/security\/KeyStore;\)V",self.getSmaliPaths())
+        if customCertificatePinningLocations[0] != '':
+            for location in customCertificatePinningLocations:
+                if "/okhttp" in location or "io/fabric" in location:
+                    continue
+                self.customCertifificatePinningLocation.append(location)
+
 
     # *** CUSTOM CHECKS ***
 
@@ -436,3 +473,12 @@ class SmaliChecks:
 
     def getFileAccessEnabledWebViews(self):
         return self.fileAccessEnabledWebviews
+
+    def getOkHTTPCertificatePinningLocations(self):
+        return self.okHttpCertificatePinningLocation
+
+    def getCustomCertificatePinningLocations(self):
+        return self.customCertifificatePinningLocation
+
+    def getKeystoreLocations(self):
+        return self.keystoreLocations

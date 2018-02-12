@@ -351,7 +351,7 @@ class ApkXmind:
             ("https://github.com/OWASP/owasp-mstg/blob/master/Document/0x05h-Testing-Platform-Interaction.md#testing-for-sensitive-functionality-exposure-through-ipc")
 
         debuggableEvidenceTopic = TopicElement()
-        debuggableEvidenceTopic.setURLHyperlink("https://github.com/OWASP/owasp-mstg/blob/7d4b3dfd70f12874fb508d0299befea48ac5c2aa/Document/0x05i-Testing-Code-Quality-and-Build-Settings.md#testing-if-the-app-is-debuggable")
+        debuggableEvidenceTopic.setURLHyperlink("https://github.com/OWASP/owasp-mstg/blob/master//Document/0x05i-Testing-Code-Quality-and-Build-Settings.md#testing-if-the-app-is-debuggable")
         if self.app.isDebuggable() == "Yes":
             debuggableEvidenceTopic.setTitle("Application is debuggable")
             debuggableEvidenceTopic.addMarker('flag-red')
@@ -406,13 +406,16 @@ class ApkXmind:
             javascriptEnabledWebviewTopic.setTitle("No WebView with Javascript enabled.")
             javascriptEnabledWebviewTopic.addMarker('flag-green')
         topicElement.addSubTopic(javascriptEnabledWebviewTopic)
-
         fileAccessEnabledWebviewTopic = TopicElement()
         fileAccessEnabledWebviewTopic.setURLHyperlink("https://github.com/OWASP/owasp-mstg/blob/master/Document/0x05h-Testing-Platform-Interaction.md#testing-webview-protocol-handlers")
         if len(self.app.smaliChecks.getFileAccessEnabledWebViews()) > 0:
             fileAccessEnabledWebviewTopic.setTitle("WebView with fileAccess enabled.")
             self.createSubTopics(fileAccessEnabledWebviewTopic, self.app.smaliChecks.getFileAccessEnabledWebViews())
-            fileAccessEnabledWebviewTopic.addMarker('flag-yellow')
+            if int(self.app.getMinSDKVersion()) < 16:
+                fileAccessEnabledWebviewTopic.setPlainNotes("This app runs in versions bellow API 16, therefore in those versions is possible to bypass CORS.")
+                fileAccessEnabledWebviewTopic.addMarker('flag-red')
+            else:
+                fileAccessEnabledWebviewTopic.addMarker('flag-yellow')
             if len(self.app.smaliChecks.getFileAccessEnabledWebViews()) > self.configuration.getXmindTopipFoldAt():
                 fileAccessEnabledWebviewTopic.setFolded()
         else:
@@ -435,7 +438,7 @@ class ApkXmind:
         self.createSubTopics(topicElement.getSubTopicByIndex(0) ,sslSubTopics)
 
         trustManagerSubTopic = TopicElement()
-        trustManagerSubTopic.setURLHyperlink("https://github.com/OWASP/owasp-mstg/blob/7d4b3dfd70f12874fb508d0299befea48ac5c2aa/Document/0x05g-Testing-Network-Communication.md#verifying-the-server-certificate")
+        trustManagerSubTopic.setURLHyperlink("https://github.com/OWASP/owasp-mstg/blob/master/Document/0x05g-Testing-Network-Communication.md#verifying-the-server-certificate")
         if len(self.app.smaliChecks.getVulnerableTrustManagers()) != 0:
             trustManagerSubTopic.setTitle("Vulnerable Trust Manager:")
             self.createSubTopics(trustManagerSubTopic,self.app.smaliChecks.getVulnerableTrustManagers())
@@ -448,7 +451,7 @@ class ApkXmind:
 
         sslErrorBypassSubTopic = TopicElement()
         sslErrorBypassSubTopic.setURLHyperlink(
-            "https://github.com/OWASP/owasp-mstg/blob/7d4b3dfd70f12874fb508d0299befea48ac5c2aa/Document/0x05g-Testing-Network-Communication.md#webview-server-certificate-verification")
+            "https://github.com/OWASP/owasp-mstg/blob/master/Document/0x05g-Testing-Network-Communication.md#webview-server-certificate-verification")
         if len(self.app.smaliChecks.getVulnerableWebViewSSLErrorBypass()) != 0:
             sslErrorBypassSubTopic.setTitle("Webview with vulnerable SSL Implementation:")
             sslErrorBypassSubTopic.addMarker('flag-red')
@@ -460,7 +463,7 @@ class ApkXmind:
 
         vulnerableHostnameVerifiersSubTopic = TopicElement()
         vulnerableHostnameVerifiersSubTopic.setURLHyperlink(
-            "https://github.com/OWASP/owasp-mstg/blob/7d4b3dfd70f12874fb508d0299befea48ac5c2aa/Document/0x05g-Testing-Network-Communication.md#hostname-verification")
+            "https://github.com/OWASP/owasp-mstg/blob/master/Document/0x05g-Testing-Network-Communication.md#hostname-verification")
         if len(self.app.smaliChecks.getVulnerableHostnameVerifiers()) != 0:
             vulnerableHostnameVerifiersSubTopic.setTitle("Vulnerable HostnameVerifier found")
             vulnerableHostnameVerifiersSubTopic.addMarker('flag-red')
@@ -472,7 +475,7 @@ class ApkXmind:
 
         vulnerableSetHostnameVerifiersSubTopic = TopicElement()
         vulnerableSetHostnameVerifiersSubTopic.setURLHyperlink(
-            "https://github.com/OWASP/owasp-mstg/blob/7d4b3dfd70f12874fb508d0299befea48ac5c2aa/Document/0x05g-Testing-Network-Communication.md#hostname-verification")
+            "hhttps://github.com/OWASP/owasp-mstg/blob/master/Document/0x05g-Testing-Network-Communication.md#hostname-verification")
         if len(self.app.smaliChecks.getVulnerableSetHostnameVerifier()) != 0:
             vulnerableSetHostnameVerifiersSubTopic.setTitle("setHostnameVerifier call with ALLOW_ALL_HOSTNAMES_VERIFIER")
             vulnerableSetHostnameVerifiersSubTopic.addMarker('flag-red')
@@ -496,17 +499,55 @@ class ApkXmind:
             vulnerableSocketsSubTopic.addMarker('flag-green')
         topicElement.getSubTopicByIndex(0).addSubTopic(vulnerableSocketsSubTopic)
 
+        networkSecurityConfig = TopicElement()
+        networkSecurityConfig.setURLHyperlink("https://github.com/OWASP/owasp-mstg/blob/master/Document/0x05g-Testing-Network-Communication.md#network-security-configuration")
+        if self.app.targetSDKVersion >= 25:
+            if self.app.hasNetworkSecurityConfig == True:
+                networkSecurityConfig.setTitle(
+                    "Usage of NetworkSecurityConfig file.")
+                networkSecurityConfig.addMarker('flag-green')
+            else:
+                networkSecurityConfig.setTitle("No usage of NetworkSecurityConfig file.")
+                networkSecurityConfig.addMarker('flag-yellow')
+        else:
+            networkSecurityConfig.setTitle(
+                "NetworkSecurityConfig check ignored.")
+            networkSecurityConfig.addMarker('flag-green')
+            networkSecurityConfig.setPlainNotes("App is not targeting Android versions >= Nougat 7.0")
+        topicElement.getSubTopicByIndex(0).addSubTopic(networkSecurityConfig)
+
+        certificatePinningTopic = TopicElement()
+        certificatePinningTopic.setURLHyperlink("https://github.com/OWASP/owasp-mstg/blob/master/Document/0x05g-Testing-Network-Communication.md#testing-custom-certificate-stores-and-certificate-pinning")
+        if len(self.app.smaliChecks.getOkHTTPCertificatePinningLocations())>0 or len(self.app.smaliChecks.getCustomCertificatePinningLocations())>0:
+            certificatePinningTopic.setTitle("Possible Certificate Pinning Usage")
+            certificatePinningTopic.addMarker('flag-green')
+            okHttpCertificatePinningTopic = TopicElement()
+            if len(self.app.smaliChecks.getOkHTTPCertificatePinningLocations())>0:
+                okHttpCertificatePinningTopic.setTitle("OkHTTP Certificate Pinning.")
+                self.createSubTopics(okHttpCertificatePinningTopic,self.app.smaliChecks.getOkHTTPCertificatePinningLocations())
+                certificatePinningTopic.addSubTopic(okHttpCertificatePinningTopic)
+            customCertificatePinningTopic = TopicElement()
+            if len(self.app.smaliChecks.getCustomCertificatePinningLocations()) > 0:
+                customCertificatePinningTopic.setTitle("Custom Certificate Pinning")
+                self.createSubTopics(customCertificatePinningTopic,self.app.smaliChecks.getCustomCertificatePinningLocations())
+                certificatePinningTopic.addSubTopic(customCertificatePinningTopic)
+        else:
+            certificatePinningTopic.setTitle("No usage of Certificate Pinning")
+            certificatePinningTopic.addMarker('flag-yellow')
+        topicElement.getSubTopicByIndex(0).addSubTopic(certificatePinningTopic)
+
+
 
 
 
 
         sslImplementationTopic = topicElement.getSubTopicByIndex(0)
         sslImplementationTopic.getSubTopicByIndex(0).setURLHyperlink \
-            ("https://github.com/OWASP/owasp-mstg/blob/master/Document/0x05g-Testing-Network-Communication.md#testing-endpoint-identify-verification")
+            ("https://github.com/OWASP/owasp-mstg/blob/master/Document/0x05g-Testing-Network-Communication.md#verifying-the-server-certificate")
         sslImplementationTopic.getSubTopicByIndex(1).setURLHyperlink \
-            ("https://github.com/OWASP/owasp-mstg/blob/master/Document/0x05g-Testing-Network-Communication.md#testing-endpoint-identify-verification")
+            ("https://github.com/OWASP/owasp-mstg/blob/master/Document/0x05g-Testing-Network-Communication.md#hostname-verification#hostname-verification")
         sslImplementationTopic.getSubTopicByIndex(2).setURLHyperlink \
-            ("https://github.com/OWASP/owasp-mstg/blob/master/Document/0x05g-Testing-Network-Communication.md#testing-endpoint-identify-verification")
+            ("https://github.com/OWASP/owasp-mstg/blob/master/Document/0x05g-Testing-Network-Communication.md#testing-custom-certificate-stores-and-certificate-pinning")
         methodologyTopic.addSubTopic(topicElement)
 
 
@@ -575,6 +616,19 @@ class ApkXmind:
             DESTopic.setTitle("No usage of DES or 3DES")
             DESTopic.addMarker('flag-green')
         topicElement.addSubTopic(DESTopic)
+
+        keystoreTopic = TopicElement()
+        if len(self.app.smaliChecks.getKeystoreLocations()) > 0:
+            keystoreTopic.setTitle("Usage of Android KeyStore")
+            keystoreTopic.addMarker('flag-green')
+            self.createSubTopics(keystoreTopic,self.app.smaliChecks.getKeystoreLocations())
+        else:
+            keystoreTopic.setTitle("No usage of Android KeyStore")
+            keystoreTopic.addMarker('flag-yellow')
+        topicElement.addSubTopic(keystoreTopic)
+
+
+
         methodologyTopic.addSubTopic(topicElement)
 
 

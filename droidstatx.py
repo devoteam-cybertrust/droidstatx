@@ -12,7 +12,7 @@ if __name__=="__main__":
  _   \ \  ____  ___   _   _ | |  ___ | |_   ____ | |_  ___\ \/ / 
 | |   | |/ ___)/ _ \ | | / || | /___)|  _) / _  ||  _)(___))  (  
 | |__/ /| |   | |_| || |( (_| ||___ || |__( ( | || |__    / /\ \ 
-|_____/ |_|    \___/ |_| \____|(___/  \___)\_||_| \___)  /_/  \_\ v0.2 \n       Android Applications Security Analyser, Xmind Generator \n       Created by @clviper\n"""
+|_____/ |_|    \___/ |_| \____|(___/  \___)\_||_| \___)  /_/  \_\ v0.3 \n       Android Applications Security Analyser, Xmind Generator \n       Created by @clviper\n"""
   parser = argparse.ArgumentParser()
   parser.add_argument("--apk", nargs=1, help="APK file.", metavar='<File>')
   args = parser.parse_args()
