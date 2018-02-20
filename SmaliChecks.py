@@ -1,6 +1,7 @@
 import re
 from Configuration import *
 from subprocess import *
+from sys import platform
 
 
 class NotFound(Exception):
@@ -50,8 +51,15 @@ class SmaliChecks:
     def getSmaliPaths(self):
         return self.smaliPaths
 
+    def getOSGnuGrepCommand(self):
+        if platform == "darwin":
+            return "ggrep"
+        else:
+            return "grep"
+
+
     def checkForExistenceInFolder(self,objectRegEx,folderPath):
-        command = ["grep","-s" ,"-r", "-l", "-P",objectRegEx," --exclude-dir="+self.configuration.getFolderExclusions()]
+        command = [self.getOSGnuGrepCommand(),"-s" ,"-r", "-l", "-P",objectRegEx," --exclude-dir="+self.configuration.getFolderExclusions()]
         for path in folderPath:
             command.append(path)
         grep = Popen(command, stdout=PIPE)
@@ -62,7 +70,7 @@ class SmaliChecks:
             raise NotFound
 
     def existsInFile(self,objectRegEx,filePath):
-        grep = Popen(["grep","-l", "-P",objectRegEx,filePath], stdout=PIPE)
+        grep = Popen([self.getOSGnuGrepCommand(),"-l", "-P",objectRegEx,filePath], stdout=PIPE)
         filePaths = grep.communicate()[0].strip().split('\n')
         if len(filePaths) > 0:
             return filePaths
@@ -75,13 +83,13 @@ class SmaliChecks:
         return methodContent.strip().replace('    ','').split('\n')
 
     def getFileContent(self,filePath):
-        grep = Popen(["sed", "1p",filePath], stdout=PIPE)
-        fileContent = grep.communicate()[0]
+        sed = Popen(["sed", "1p",filePath], stdout=PIPE)
+        fileContent = sed.communicate()[0]
         return fileContent.strip().replace('    ', '').split('\n')
 
     def getMethodInstructions(self,methodRegEx,filePath):
-        grep = Popen(["sed", "-n", methodRegEx, filePath], stdout=PIPE)
-        methodContent = grep.communicate()[0]
+        sed = Popen(["sed", "-n", methodRegEx, filePath], stdout=PIPE)
+        methodContent = sed.communicate()[0]
         try:
             match = re.search(r".locals \d{1,}([\S\s]*?).end method", methodContent)
             instructions = str(match.group(1)).strip().replace('    ','').split('\n')
