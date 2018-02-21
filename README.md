@@ -64,16 +64,16 @@ Each time the tool runs against a package, if the xmind map already exists,a new
           - Used Plugins 
       * Xamarin
           - Determine if DLL's are bundled (Automatic extraction of DLL's to output_dlls folder)
- * Determine if the backup option is enabled
- * Determine if the package has multiple dex files
- * Check for presence of secret codes
+  * Determine if the backup option is enabled
+  * Determine if the package has multiple dex files
+  * Check for presence of secret codes
 * Permissions
 * Exported Components with respective intent-filters and permissions
 * Package Files (some extensions are filtered by default;configurable.)
 * Object Usage
- * WebViews loadUrl
- * Cryptographic Functions
- * Custom Checks (configurable.)
+  * WebViews loadUrl
+  * Cryptographic Functions
+  * Custom Checks (configurable.)
 * Components Security Related Evidences Checks
   * Fragment Injection
   * Lack of FLAG_SECURE or android:excludeFromRecents in activities 
