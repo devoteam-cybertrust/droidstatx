@@ -63,7 +63,7 @@ Each time the tool runs against a package, if the xmind map already exists,a new
       * Cordova
           - Used Plugins 
       * Xamarin
-          - Determine if DLL's are bundled.
+          - Determine if DLL's are bundled (Automatic extraction of DLL's to output_dlls folder)
  * Determine if the backup option is enabled
  * Determine if the package has multiple dex files
  * Check for presence of secret codes
@@ -71,9 +71,9 @@ Each time the tool runs against a package, if the xmind map already exists,a new
 * Exported Components with respective intent-filters and permissions
 * Package Files (some extensions are filtered by default;configurable.)
 * Object Usage
-  * WebViews loadUrl
-  * Cryptographic Functions
-  * Custom Checks (configurable.)
+ * WebViews loadUrl
+ * Cryptographic Functions
+ * Custom Checks (configurable.)
 * Components Security Related Evidences Checks
   * Fragment Injection
   * Lack of FLAG_SECURE or android:excludeFromRecents in activities 
@@ -84,16 +84,13 @@ Each time the tool runs against a package, if the xmind map already exists,a new
   * Usage of Javascript Enabled
   * Usage of fileAccess Enabled
 * TLS Security Related Evidences Checks
-  * Vulnerable TrustManagers
-  * Vulnerable HostnameVerifiers
-  * Webviews Vulnerable onReceivedSslError Method
-  * Direct usage of Socket without HostnameVerifier
-  * Detect usage of NetworkSecurityConfig
-  * Detect usage Certificate Pinning (okHttp and Custom implementation)
+ * Vulnerable TrustManagers
+ * Vulnerable HostnameVerifiers
+ * Webviews Vulnerable onReceivedSslError Method
+ * Direct usage of Socket without HostnameVerifier
 * Cryptography Security Related Evidences Checks
-  * Usage of AES with ECB
-  * Usage of DES or 3DES
-  * Detect usage of Android Keystore
+ * Usage of AES with ECB
+ * Usage of DES or 3DES
 
 **Under the Hood**
 
@@ -116,5 +113,3 @@ Right now, this standalone module is being released as a quick win, but sometime
 Based on the work started on 2015, and since I wanted to learn and improve my understanding of Dalvik Bytecode, I created all the static checks from scratch, following my own thinking/approach. Other tools’ approaches will differ.
 
 That being said, I've tested the tool against the top 30 applications in the Play Store, around 60 other applications, including several vulnerable applications created for the effect, and manually performed the review on all of them to try and guarantee the tool’s accuracy and completeness but there may exist scenarios where the tool will not behave correctly; if you find any bugs, or incorrect or missing information,please create an Issue on the project.
-
-Thanks @Dcrypt3d, @hdontwit, @pipasnacave, @morisson, zav and pmsac for the inputs.  

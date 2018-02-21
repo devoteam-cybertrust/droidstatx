@@ -479,7 +479,7 @@ class App:
               self.isAppXamarin = True
               self.xamarinMKBundled = True
               self.xamarinBundledFile = f
-              print "[-] Extracting Dll's from bundled file."
+              print "[-]Extracting Dll's from bundled lib."
               self.unbundleXamarinDlls()
           elif f[0:11] == "assemblies/" in f:
             self.assemblies.append(f)
@@ -545,7 +545,8 @@ class App:
       self.smaliChecks = SmaliChecks(self.baksmaliPaths)
 
   def unbundleXamarinDlls(self):
-    bundledFile = self.xamarinBundledFile
+    cwd = os.path.dirname(os.path.realpath(__file__))
+    bundledFile = cwd+"/output_apktool/" + self.a.get_package()+"_"+self.a.get_androidversion_code()+"/"+self.xamarinBundledFile
     command = ["objdump", "-T", "-x", "-j", ".rodata",bundledFile]
     objdump = Popen(command, stdout=PIPE)
     sed = Popen(["sed", "-e", "1,/DYNAMIC SYMBOL TABLE/ d"], stdin=objdump.stdout, stdout=PIPE)
@@ -553,27 +554,20 @@ class App:
     for line in sed.stdout:
       if len(line.strip().split()) > 0:
         dlls.append(line.strip().split())
+    files = []
     for dll in dlls:
       if "config" not in dll[6]:
         skip = int(dll[0], 16)
         length = int(dll[4], 16)
-        name = dll[6]
+        name = dll[6].replace("assembly_data_","").replace("_dll",".dll") + ".gz"
+        packageFolder = self.a.get_package()+"_"+self.a.get_androidversion_code()
+        if not os.path.exists(cwd + "/output_dlls/"+packageFolder):
+          os.makedirs(cwd + "/output_dlls/"+packageFolder)
         command = ["dd", "iflag=skip_bytes", "bs=1",
                    "if="+bundledFile,
                    "skip=" + str(skip), "count=" + str(length),
-                   "of=/tools/mobile/android/droidstat-x/output_dlls/tmp/" + name + ".gz"]
-        dd = Popen(command, stdout=PIPE)
-        try:
-          gzip = Popen(["gzip", "-d"], stdin=dd.stdout, stdout=PIPE)
-        except IOError:
-          continue
-        if "records in" in dd.stderr.readline():
-          try:
-            with gzip.open("/tools/mobile/android/droidstat-x/output_dlls/tmp/" + name + ".gz", 'rb') as f:
-              content = f.read()
-              new_dll = open(
-                "/tools/mobile/android/droidstat-x/output_dlls/" + name.replace("assembly_data_", "").replace("_", "."), "w")
-              new_dll.write(content)
-              new_dll.close()
-          except IOError:
-            continue
+                   "of="+cwd+"/output_dlls/"+packageFolder+"/" + name]
+        files.append(cwd+"/output_dlls/"+packageFolder+"/" + name)
+        dd = Popen(command, stderr=PIPE).wait()
+    for f in files:
+      Popen(["gzip","-d","-f",f], stdout=PIPE).wait()
