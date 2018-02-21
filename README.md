@@ -88,9 +88,12 @@ Each time the tool runs against a package, if the xmind map already exists,a new
  * Vulnerable HostnameVerifiers
  * Webviews Vulnerable onReceivedSslError Method
  * Direct usage of Socket without HostnameVerifier
+ * Determine the usage of NetworkSecurityConfig file
+ * Determine the usage of Certificate Pinning (Custom and okHTTP)
 * Cryptography Security Related Evidences Checks
  * Usage of AES with ECB
  * Usage of DES or 3DES
+ * Determine the usage of Android Keystore
 
 **Under the Hood**
 
