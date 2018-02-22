@@ -337,7 +337,7 @@ class SmaliChecks:
         insecureHostNameVerifierLocations = self.checkForExistenceInFolder(".implements Ljavax\/net\/ssl\/HostnameVerifier;",self.getSmaliPaths())
         if insecureHostNameVerifierLocations[0] != '':
             for location in insecureHostNameVerifierLocations:
-                methodInstructions = self.getMethodCompleteInstructions('/.method \([a-zA-Z]* \)verify(Ljava\/lang\/String;Ljavax\/net\/ssl\/SSLSession;)Z/,/^.end method/p',location)
+                methodInstructions = self.getMethodCompleteInstructions('/.method .* verify(Ljava\/lang\/String;Ljavax\/net\/ssl\/SSLSession;)Z/,/^.end method/p',location)
                 if methodInstructions != "":
                     if self.doesMethodReturnTrue(methodInstructions) == True:
                         self.vulnerableHostnameVerifiers.append(location)
