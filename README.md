@@ -4,6 +4,8 @@
 * The map itself is an Android Application Pentesting Methodology component, which assists Pentesters to cover all important areas during an assessment. This was the main goal driving the tool development.
 * The tool also allows to add custom checks in a simple way, to confirm the existence of those patterns in the dalvik bytecode instructions.
 
+![Sample Analysys](https://github.com/integrity-sa/droidstatx/raw/master/sample.png "Sample Analysys")
+
 **Installation (Tested on Kali 2017)**
 
 You have two options. Use Docker with the provided docker file or use the following instructions for manual setup:
