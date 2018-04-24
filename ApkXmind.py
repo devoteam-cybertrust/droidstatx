@@ -104,8 +104,9 @@ class ApkXmind:
         topicElement.setTitle(self.app.isMultiDex())
         informationGatheringTopic.getSubTopicByIndex(0).getSubTopicByIndex(9).addSubTopic(topicElement)
         topicElement = TopicElement()
-        if len(self.app.getSecretCodes() ) >0:
+        if len(self.app.getSecretCodes()) >0:
             self.createSubTopics(topicElement, self.app.getSecretCodes())
+            informationGatheringTopic.getSubTopicByIndex(0).getSubTopicByIndex(10).addSubTopic(topicElement)
         else:
             topicElement.setTitle("No")
             informationGatheringTopic.getSubTopicByIndex(0).getSubTopicByIndex(10).addSubTopic(topicElement)
@@ -191,6 +192,14 @@ class ApkXmind:
             except:
                 pass
             informationGatheringTopic.getSubTopicByIndex(2).getSubTopicByIndex(1).addSubTopic(topicElement)
+        if len(self.app.smaliChecks.getDynamicRegisteredBroadcastReceiversLocations()) > 0:
+            dynamicRegisteredBroadcastReceiverTopic = TopicElement()
+            dynamicRegisteredBroadcastReceiverTopic.setTitle("Dynamically Registered")
+            self.createSubTopics(dynamicRegisteredBroadcastReceiverTopic,self.app.smaliChecks.getDynamicRegisteredBroadcastReceiversLocations())
+            informationGatheringTopic.getSubTopicByIndex(2).getSubTopicByIndex(1).addSubTopic(dynamicRegisteredBroadcastReceiverTopic)
+            if len(self.app.smaliChecks.getDynamicRegisteredBroadcastReceiversLocations()) > self.configuration.getXmindTopipFoldAt():
+                dynamicRegisteredBroadcastReceiverTopic.setFolded()
+
         if len(self.app.getExportedReceivers()) > self.configuration.getXmindTopipFoldAt():
             informationGatheringTopic.getSubTopicByIndex(2).getSubTopicByIndex(1).setFolded()
         for provider in self.app.getExportedProviders():

@@ -101,23 +101,16 @@ class App:
     self.packageName = self.a.get_package()
     self.versionName = self.a.get_androidversion_name()
     self.versionCode = self.a.get_androidversion_code()
-    try:
-      if self.application.get(self.NS_ANDROID+"debuggable") == 'true':
-        self.debuggable = True
-    except KeyError:
-      pass
-    try:
-      if self.application.get(self.NS_ANDROID+"allowBackup") == 'true':
+    if self.application.get(self.NS_ANDROID+"debuggable") == 'true':
+      self.debuggable = True
+    if self.application.get(self.NS_ANDROID+"allowBackup") == 'true':
+      self.allowBackup = True
+    elif self.application.get(self.NS_ANDROID+"allowBackup") == 'false':
+      self.allowBackup = False
+    else:
         self.allowBackup = True
-      else:
-        self.allowBackup = False
-    except KeyError:
-        self.allowBackup = True
-    try:
-      if self.application.get(self.NS_ANDROID+"networkSecurityConfig") is not None:
-        self.hasNetworkSecurityConfig = True
-    except KeyError:
-      pass
+    if self.application.get(self.NS_ANDROID+"networkSecurityConfig") is not None:
+      self.hasNetworkSecurityConfig = True
 
   # Create the list of permissions used by the package
 
@@ -135,22 +128,16 @@ class App:
     for intentFilter in intentFilters:
       if len(intentFilter.findall("data")) > 0:
         datas = intentFilter.findall("data")
-        try:
-          for data in datas:
-            if data.get(self.NS_ANDROID+"android:scheme") == "android_secret_code":
-              self.secretCodes.append(data.get(self.NS_ANDROID+"android:scheme"))
-        except KeyError:
-          continue
+        for data in datas:
+          if data.get(self.NS_ANDROID+"scheme") == "android_secret_code":
+            self.secretCodes.append(data.get(self.NS_ANDROID+"host"))
 
   #Create a global list of activities with the excludeFromRecentes attribute
 
   def extractActivitiesWithExcludeFromRecents(self):
     for activity in self.application.findall("activity"):
-      try:
-        if activity.get(self.NS_ANDROID+"excludeFromRecents") == 'true':
-          self.activitiesWithExcludeFromRecents.append(activity)
-      except:
-        continue
+      if activity.get(self.NS_ANDROID+"excludeFromRecents") == 'true':
+        self.activitiesWithExcludeFromRecents.append(activity)
 
   #Return the ProtectionLevel of a particular Permission
 
@@ -267,6 +254,7 @@ class App:
           self.extractIntentFilters(filters, receiver)
           self.extractComponentPermission(receiver)
           self.exportedReceivers.append(receiverName)
+
 
   # Determine exported Content Providers taking into account the existence of exported attribute or without the attributes, under API 16 they are exported by default
 

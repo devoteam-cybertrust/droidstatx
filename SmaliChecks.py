@@ -15,6 +15,7 @@ class SmaliChecks:
     vulnerableSetHostnameVerifiers = []
     vulnerableHostnameVerifiers = []
     vulnerableSocketsLocations = []
+    dynamicRegisteredBroadcastReceiversLocations = []
     encryptionFunctionsLocation = []
     decryptionFunctionsLocation = []
     undeterminedCryptographicFunctionsLocation = []
@@ -47,6 +48,7 @@ class SmaliChecks:
         self.checkOKHttpCertificatePinning()
         self.checkCustomPinningImplementation()
         self.findKeystoreUsage()
+        self.findDynamicRegisteredBroadcastReceivers()
 
     def getSmaliPaths(self):
         return self.smaliPaths
@@ -242,6 +244,15 @@ class SmaliChecks:
             except:
                 continue
         return indexList
+
+
+
+    def findDynamicRegisteredBroadcastReceivers(self):
+        dynamicRegisteredBroadcastReceiversLocations = self.checkForExistenceInFolder(
+            ";->registerReceiver\(Landroid\/content\/BroadcastReceiver;Landroid\/content\/IntentFilter;\)",
+            self.getSmaliPaths())
+        for location in dynamicRegisteredBroadcastReceiversLocations:
+            self.dynamicRegisteredBroadcastReceiversLocations.append(location)
 
 
     def findEncryptionFunctions(self):
@@ -490,3 +501,6 @@ class SmaliChecks:
 
     def getKeystoreLocations(self):
         return self.keystoreLocations
+
+    def getDynamicRegisteredBroadcastReceiversLocations(self):
+        return self.dynamicRegisteredBroadcastReceiversLocations
