@@ -421,8 +421,8 @@ class ApkXmind:
             fileAccessEnabledWebviewTopic.setTitle("WebView with fileAccess enabled.")
             self.createSubTopics(fileAccessEnabledWebviewTopic, self.app.smaliChecks.getFileAccessEnabledWebViews())
             if int(self.app.getMinSDKVersion()) < 16:
-                fileAccessEnabledWebviewTopic.setPlainNotes("This app runs in versions bellow API 16, therefore in those versions is possible to bypass CORS.")
-                fileAccessEnabledWebviewTopic.addMarker('flag-red')
+                fileAccessEnabledWebviewTopic.setPlainNotes("This app runs in versions bellow API 16 (Jelly Bean). If webview is opening local HTML files via file URL and loading external resources it might be possible to bypass Same Origin Policy and extract local files since AllowUniversalAccessFromFileURLs is enabled by default and there is not public API to disable it in this versions.")
+                fileAccessEnabledWebviewTopic.addMarker('flag-yellow')
             else:
                 fileAccessEnabledWebviewTopic.addMarker('flag-yellow')
             if len(self.app.smaliChecks.getFileAccessEnabledWebViews()) > self.configuration.getXmindTopipFoldAt():
@@ -432,6 +432,15 @@ class ApkXmind:
             fileAccessEnabledWebviewTopic.addMarker('flag-green')
         topicElement.addSubTopic(fileAccessEnabledWebviewTopic)
 
+        universalAccessEnabledWebviewTopic = TopicElement()
+        if len(self.app.smaliChecks.getUniversalAccessFromFileURLEnabledWebviewsLocations()) > 0:
+            self.createSubTopics(universalAccessEnabledWebviewTopic,self.app.smaliChecks.getUniversalAccessFromFileURLEnabledWebviewsLocations())
+            universalAccessEnabledWebviewTopic.setTitle("WebView with Universal Access from File URLs enabled.")
+            universalAccessEnabledWebviewTopic.addMarker('flag-yellow')
+        else:
+            universalAccessEnabledWebviewTopic.setTitle("No WebView with Universal Access from File URLs found.")
+            universalAccessEnabledWebviewTopic.addMarker('flag-green')
+        topicElement.addSubTopic(universalAccessEnabledWebviewTopic)
 
         methodologyTopic.addSubTopic(topicElement)
 

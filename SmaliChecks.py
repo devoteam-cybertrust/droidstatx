@@ -28,6 +28,7 @@ class SmaliChecks:
     DESLocations =[]
     javascriptEnabledWebviews = []
     fileAccessEnabledWebviews = []
+    universalAccessFromFileURLEnabledWebviewsLocations = []
     customChecksLocations = {}
     configuration = Configuration()
 
@@ -322,9 +323,16 @@ class SmaliChecks:
                         register = self.findRegistersPassedToFunction(instructions[index])
                         value = self.findRegisterAssignedValueFromIndexBackwards(instructions, register[1], index)
                         if value == "0x1":
-                            self.javascriptEnabledWebviews.append(location)
+                            self.fileAccessEnabledWebviews.append(location)
                 else:
                     self.fileAccessEnabledWebviews.append(location)
+                indexList = self.findInstructionIndex(instructions,"Landroid/webkit/WebSettings;->setAllowUniversalAccessFromFileURLs\(Z\)V")
+                if len(indexList) > 0:
+                    for index in indexList:
+                        register = self.findRegistersPassedToFunction(instructions[index])
+                        value = self.findRegisterAssignedValueFromIndexBackwards(instructions, register[1], index)
+                        if value == "0x1":
+                            self.universalAccessFromFileURLEnabledWebviewsLocations.append(location)
 
 
 
@@ -492,6 +500,9 @@ class SmaliChecks:
 
     def getFileAccessEnabledWebViews(self):
         return self.fileAccessEnabledWebviews
+
+    def getUniversalAccessFromFileURLEnabledWebviewsLocations(self):
+        return self.universalAccessFromFileURLEnabledWebviewsLocations
 
     def getOkHTTPCertificatePinningLocations(self):
         return self.okHttpCertificatePinningLocation
