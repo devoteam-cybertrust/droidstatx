@@ -83,8 +83,9 @@ Each time the tool runs against a package, if the xmind map already exists,a new
   * Determine if the application is debuggable 
 * Webiews Security Related Evidences Checks
   * Usage of AddJavascriptInterface (Based on the minimum SDK version, the evidence will indicate RCE possibility or not)
-  * Usage of Javascript Enabled
-  * Usage of fileAccess Enabled
+  * Javascript Enabled
+  * fileAccess Enabled
+  * AllowUniversalAccessFromFileURLs enabled
 * TLS Security Related Evidences Checks
   * Vulnerable TrustManagers
   * Vulnerable HostnameVerifiers
