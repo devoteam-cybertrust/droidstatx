@@ -2,6 +2,8 @@ import xmind
 from xmind.core import workbook,saver
 from xmind.core.topic import TopicElement
 from Configuration import *
+from datetime import datetime
+import time
 
 class ApkXmind:
 
@@ -523,7 +525,68 @@ class ApkXmind:
             if self.app.hasNetworkSecurityConfig == True:
                 networkSecurityConfig.setTitle(
                     "Usage of NetworkSecurityConfig file.")
-                networkSecurityConfig.addMarker('flag-green')
+                domains = self.app.getNetworkSecurityConfigDomains()
+                for domain in domains:
+                    domainTopic = TopicElement()
+                    domainTopic.setTitle(','.join(domain['domains']))
+
+                    clearTextAllowedTopic = TopicElement()
+                    clearTextAllowedTopic.setTitle("Clear Text Allowed")
+                    clearTextAllowedValueTopic = TopicElement()
+                    if str(domain['allowClearText']) == "True":
+                        clearTextAllowedValueTopic.setTitle("Yes")
+                        clearTextAllowedValueTopic.addMarker('flag-red')
+                    else:
+                        clearTextAllowedValueTopic.setTitle("No")
+                        clearTextAllowedValueTopic.addMarker('flag-green')
+                    clearTextAllowedTopic.addSubTopic(clearTextAllowedValueTopic)
+
+                    allowUserCATopic = TopicElement()
+                    allowUserCATopic.setTitle("User CA Trusted")
+                    allowUserCAValueTopic = TopicElement()
+                    if str(domain['allowUserCA']) == "True":
+                        allowUserCAValueTopic.setTitle("Yes")
+                        allowUserCAValueTopic.addMarker('flag-red')
+                    else:
+                        allowUserCAValueTopic.setTitle("No")
+                        allowUserCAValueTopic.addMarker('flag-green')
+                    allowUserCATopic.addSubTopic(allowUserCAValueTopic)
+
+                    pinningTopic = TopicElement()
+                    pinningTopic.setTitle("Pinning Configured")
+                    pinningValueTopic = TopicElement()
+                    if str(domain['pinning']) == "True":
+                        pinningValueTopic.setTitle("Yes")
+                        pinningValueTopic.addMarker('flag-green')
+                        pinningExpirationTopic = TopicElement()
+                        pinningExpirationValueTopic = TopicElement()
+                        pinningExpirationTopic.setTitle("Pinning Expiration")
+                        if domain['pinningExpiration'] != '':
+                            date_format = "%Y-%m-%d"
+                            a = datetime.strptime(domain['pinningExpiration'], date_format)
+                            b = datetime.strptime(time.strftime("%Y-%m-%d"), date_format)
+                            days =  (a-b).days
+                            pinningExpirationValueTopic.setTitle(domain['pinningExpiration'])
+                            if days <=0:
+                                pinningExpirationValueTopic.addMarker('flag-red')
+                                pinningExpirationValueTopic.setPlainNotes('Certificate Pinning is disabled. The expiration date on the pin-set has been reached.')
+                            elif days < 60:
+                                pinningExpirationValueTopic.addMarker('flag-yellow')
+                                pinningExpirationValueTopic.setPlainNotes(str+(days)+' days for Certificate Pinning to be disabled.')
+                        else:
+                            pinningExpirationValueTopic.setTitle("No expiration")
+                        pinningExpirationTopic.addSubTopic(pinningExpirationValueTopic)
+                        pinningTopic.addSubTopic(pinningExpirationTopic)
+                    else:
+                        pinningValueTopic.setTitle("No")
+                        pinningValueTopic.addMarker('flag-yellow')
+                    pinningTopic.addSubTopic(pinningValueTopic)
+
+                    domainTopic.addSubTopic(clearTextAllowedTopic)
+                    domainTopic.addSubTopic(allowUserCATopic)
+                    domainTopic.addSubTopic(pinningTopic)
+                    networkSecurityConfig.addSubTopic(domainTopic)
+
             else:
                 networkSecurityConfig.setTitle("No usage of NetworkSecurityConfig file.")
                 networkSecurityConfig.addMarker('flag-yellow')

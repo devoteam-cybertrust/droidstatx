@@ -9,6 +9,7 @@ from SmaliChecks import *
 import os
 from Configuration import *
 from IntentFilter import *
+import xml.etree.ElementTree as ET
 
 class App:
 
@@ -38,6 +39,7 @@ class App:
   dexFiles = []
   otherFiles  =[]
   cordovaPlugins = []
+  networkSecurityConfigDomains = []
   isAppXamarin = False
   xamarinMKBundled = False
   xamarinBundledFile = ""
@@ -111,6 +113,42 @@ class App:
         self.allowBackup = True
     if self.application.get(self.NS_ANDROID+"networkSecurityConfig") is not None:
       self.hasNetworkSecurityConfig = True
+      self.parseNetworkSecurityConfigFile()
+
+  def getAPKToolFolder(self):
+    cwd = os.path.dirname(os.path.realpath(__file__))
+    return cwd + "/output_apktool/" + self.a.get_package() + "_" + self.a.get_androidversion_code()
+
+
+  def parseNetworkSecurityConfigFile(self):
+    cwd = os.path.dirname(os.path.realpath(__file__))
+    networkSecurityConfigPath = self.getAPKToolFolder() + "/res/xml/network_security_config.xml"
+    tree = ET.parse(networkSecurityConfigPath)
+    root = tree.getroot()
+    for child in root:
+      if child.tag == "base-config":
+        for sub in child:
+          if sub.tag == "trust-anchors":
+            print(sub.tag, sub.attrib, sub.text)
+            for certificates in sub:
+              print(certificates.tag, certificates.attrib)
+      if child.tag == "domain-config":
+        domainConfig = {'domains':[],'allowClearText':True,'allowUserCA':False,'pinning':False,'pinningExpiration':''}
+        if 'cleartextTrafficPermitted' in child.attrib:
+          if child.attrib['cleartextTrafficPermitted'] == "false":
+            domainConfig['allowClearText'] = False
+        for sub in child:
+          if sub.tag == "domain":
+            domainConfig['domains'].append(sub.text)
+          if sub.tag == "trust-anchors":
+            for certificates in sub:
+              if certificates.attrib['src'] == "user":
+                domainConfig['allowUserCA'] = True
+          if sub.tag == "pin-set":
+            domainConfig['pinning'] = True
+            if 'expiration' in sub.attrib :
+              domainConfig['pinningExpiration']  = sub.attrib['expiration']
+        self.networkSecurityConfigDomains.append(domainConfig)
 
   # Create the list of permissions used by the package
 
@@ -431,6 +469,9 @@ class App:
   def getIntentFiltersList(self):
     return self.intentFilterList
 
+  def getNetworkSecurityConfigDomains(self):
+    return self.networkSecurityConfigDomains
+
   #Determine if path is in the exclude paths configured in the config file.
 
   def isInExclusions(self,f):
@@ -518,23 +559,22 @@ class App:
 
   def bakmali(self,apkFile):
       cwd = os.path.dirname(os.path.realpath(__file__))
-      apktool = Popen(["java","-jar",cwd+"/apktool.jar", "d","-b", "-f","--frame-path","/tmp/", apkFile, "-o", cwd+"/output_apktool/"+self.a.get_package()+"_"+self.a.get_androidversion_code()+"/"], stdout=PIPE)
+      apktool = Popen(["java","-jar",cwd+"/apktool.jar", "d","-b", "-f","--frame-path","/tmp/", apkFile, "-o", self.getAPKToolFolder() +"/"], stdout=PIPE)
       output = apktool.communicate()[0]
       numberOfDexFiles = output.count("Baksmaling")
       if numberOfDexFiles > 1:
-        path = cwd+"/output_apktool/" + self.a.get_package()+"_"+self.a.get_androidversion_code()+ "/smali/"
+        path = self.getAPKToolFolder() + "/smali/"
         self.baksmaliPaths.append(path)
         for i in range (1,numberOfDexFiles):
-          path=cwd+"/output_apktool/"+self.a.get_package()+"_"+self.a.get_androidversion_code()+"/smali_classes"+str(i+1)+"/"
+          path=self.getAPKToolFolder() +"/smali_classes"+str(i+1)+"/"
           self.baksmaliPaths.append(path)
       else:
-        path = cwd+"/output_apktool/" + self.a.get_package()+"_"+self.a.get_androidversion_code() + "/smali/"
+        path = self.getAPKToolFolder()  + "/smali/"
         self.baksmaliPaths.append(path)
       self.smaliChecks = SmaliChecks(self.baksmaliPaths)
 
   def unbundleXamarinDlls(self):
-    cwd = os.path.dirname(os.path.realpath(__file__))
-    bundledFile = cwd+"/output_apktool/" + self.a.get_package()+"_"+self.a.get_androidversion_code()+"/"+self.xamarinBundledFile
+    bundledFile = self.getAPKToolFolder() +"/"+self.xamarinBundledFile
     command = ["objdump", "-T", "-x", "-j", ".rodata",bundledFile]
     objdump = Popen(command, stdout=PIPE)
     sed = Popen(["sed", "-e", "1,/DYNAMIC SYMBOL TABLE/ d"], stdin=objdump.stdout, stdout=PIPE)
