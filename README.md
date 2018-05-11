@@ -4,8 +4,6 @@
 * The map itself is an Android Application Pentesting Methodology component, which assists Pentesters to cover all important areas during an assessment. This was the main goal driving the tool development.
 * The tool also allows to add custom checks in a simple way, to confirm the existence of those patterns in the dalvik bytecode instructions.
 
-![Sample Analysys](https://github.com/integrity-sa/droidstatx/raw/master/sample.png "Sample Analysys")
-
 **Installation (Tested on Kali 2017)**
 
 You have two options. Use Docker with the provided docker file or use the following instructions for manual setup:
@@ -83,15 +81,19 @@ Each time the tool runs against a package, if the xmind map already exists,a new
   * Determine if the application is debuggable 
 * Webiews Security Related Evidences Checks
   * Usage of AddJavascriptInterface (Based on the minimum SDK version, the evidence will indicate RCE possibility or not)
-  * Javascript enabled
-  * fileAccess enabled
-  * AllowUniversalAccessFromFileURLs enabled
+  * Usage of Javascript Enabled
+  * Usage of fileAccess Enabled
+  * Usage of UniversalAccessFromFileURLs Enabled
 * TLS Security Related Evidences Checks
   * Vulnerable TrustManagers
   * Vulnerable HostnameVerifiers
   * Webviews Vulnerable onReceivedSslError Method
   * Direct usage of Socket without HostnameVerifier
   * Determine the usage of NetworkSecurityConfig file
+    * Check Clear Text Allow
+    * Check if Pinning is Enabled
+    * Check Pinning Expiration Date
+    * Check if User CA's are trusted
   * Determine the usage of Certificate Pinning (Custom and okHTTP)
 * Cryptography Security Related Evidences Checks
   * Usage of AES with ECB
