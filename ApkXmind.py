@@ -402,11 +402,11 @@ class ApkXmind:
             addJavascriptInterfaceTopic.setTitle("No presence of JavascriptInterface")
             addJavascriptInterfaceTopic.addMarker('flag-green')
         addJavascriptInterfaceTopic.setURLHyperlink(
-            "https://github.com/OWASP/owasp-mstg/blob/master/Document/0x05h-Testing-Platform-Interaction.md#testing-whether-java-objects-are-exposed-through-webviews")
+            "https://github.com/OWASP/owasp-mstg/blob/master/Document/0x05h-Testing-Platform-Interaction.md#determining-whether-java-objects-are-exposed-through-webviews")
         topicElement.addSubTopic(addJavascriptInterfaceTopic)
 
         javascriptEnabledWebviewTopic = TopicElement()
-        javascriptEnabledWebviewTopic.setURLHyperlink("https://github.com/OWASP/owasp-mstg/blob/master/Document/0x05h-Testing-Platform-Interaction.md#testing-javascript-execution-in-webviews")
+        javascriptEnabledWebviewTopic.setURLHyperlink("https://github.com/OWASP/owasp-mstg/blob/master/Document/0x05h-Testing-Platform-Interaction.md#determining-whether-java-objects-are-exposed-through-webviews")
         if len(self.app.smaliChecks.getJavascriptEnabledWebViews()) > 0:
             javascriptEnabledWebviewTopic.setTitle("WebView with Javascript enabled.")
             self.createSubTopics(javascriptEnabledWebviewTopic,self.app.smaliChecks.getJavascriptEnabledWebViews())
