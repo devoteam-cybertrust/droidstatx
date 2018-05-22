@@ -50,6 +50,7 @@ class SmaliChecks:
         self.checkCustomPinningImplementation()
         self.findKeystoreUsage()
         self.findDynamicRegisteredBroadcastReceivers()
+        self.findPathTraversalContentProvider()
 
     def getSmaliPaths(self):
         return self.smaliPaths
@@ -290,6 +291,16 @@ class SmaliChecks:
 
     # *** Improper Platform Usage ***
 
+    def findPathTraversalContentProvider(self):
+        contentProvidersLocations = self.checkForExistenceInFolder(".super Landroid\/content\/ContentProvider;",self.getSmaliPaths())
+        if contentProvidersLocations[0] != '':
+            for location in contentProvidersLocations:
+                instructions = self.getFileContent(location)
+                indexList = self.findInstructionIndex(instructions,".method public openFile\(Landroid\/net\/Uri;Ljava\/lang\/String;\)Landroid\/os\/ParcelFileDescriptor;")
+                if len(indexList) > 0:
+                    indexList = self.findInstructionIndex(instructions,"Ljava\/io\/File;->getCanonicalPath\(\)")
+
+
     def findWeakCryptographicUsage(self):
         getInstanceLocations = self.checkForExistenceInFolder("Ljavax\/crypto\/Cipher;->getInstance\(Ljava\/lang\/String;\)Ljavax\/crypto\/Cipher;",self.getSmaliPaths())
         if getInstanceLocations[0] != '':
@@ -297,7 +308,8 @@ class SmaliChecks:
                 instructions = self.getFileContent(location)
                 indexList = self.findInstructionIndex(instructions,"Ljavax/crypto/Cipher;->getInstance\(Ljava/lang/String;\)Ljavax/crypto/Cipher;")
                 for index in indexList:
-                    transformationValue = self.findRegisterAssignedValueFromIndexBackwards(instructions, "v0", index)
+		    register = self.findRegistersPassedToFunction(instructions[index])
+                    transformationValue = self.findRegisterAssignedValueFromIndexBackwards(instructions, register[0], index)
                     if transformationValue is not None:
                         if transformationValue == "\"AES\"" or "AES/ECB/" in transformationValue:
                             self.AESwithECBLocations.append(location)
