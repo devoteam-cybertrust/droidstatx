@@ -15,6 +15,8 @@ class SmaliChecks:
     vulnerableSetHostnameVerifiers = []
     vulnerableHostnameVerifiers = []
     vulnerableSocketsLocations = []
+    vulnerableContentProvidersSQLiLocations = []
+    vulnerableContentProvidersPathTraversalLocations = []
     dynamicRegisteredBroadcastReceiversLocations = []
     encryptionFunctionsLocation = []
     decryptionFunctionsLocation = []
@@ -296,9 +298,27 @@ class SmaliChecks:
         if contentProvidersLocations[0] != '':
             for location in contentProvidersLocations:
                 instructions = self.getFileContent(location)
-                indexList = self.findInstructionIndex(instructions,".method public openFile\(Landroid\/net\/Uri;Ljava\/lang\/String;\)Landroid\/os\/ParcelFileDescriptor;")
+                indexList = self.findInstructionIndex(instructions,"")
                 if len(indexList) > 0:
-                    indexList = self.findInstructionIndex(instructions,"Ljava\/io\/File;->getCanonicalPath\(\)")
+                    indexList = self.findInstructionIndex(instructions,"")
+
+    def determineContentProviderPathTraversal(self,provider):
+        location = self.checkForExistenceInFolder(".class .* L"+provider.replace(".","/"),self.getSmaliPaths())
+        instructions = self.getMethodCompleteInstructions('/.method public openFile(Landroid\/net\/Uri;Ljava\/lang\/String;)Landroid\/os\/ParcelFileDescriptor;/,/^.end method/p', location[0])
+        indexList = self.findInstructionIndex(instructions,"Ljava\/io\/File;->getCanonicalPath\(\)")
+        if len(indexList) > 0:
+                self.vulnerableContentProvidersPathTraversalLocations.append(location[0])
+
+
+    def determineContentProviderSQLi(self,provider):
+        location = self.checkForExistenceInFolder(".class .* L"+provider.replace(".","/"),self.getSmaliPaths())
+        instructions = self.getMethodCompleteInstructions('/.method public query(Landroid\/net\/Uri;\[Ljava\/lang\/String;Ljava\/lang\/String;\[Ljava\/lang\/String;Ljava\/lang\/String;)Landroid\/database\/Cursor;/,/^.end method/p', location[0])
+        indexList = self.findInstructionIndex(instructions,"invoke-virtual(.*) {(.*)}, Landroid\/database\/sqlite\/SQLiteDatabase;->query")
+        if len(indexList) > 0:
+            indexList = self.findInstructionIndex(instructions,"\?")
+            if len(indexList) == 0:
+                self.vulnerableContentProvidersSQLiLocations.append(location[0])
+
 
 
     def findWeakCryptographicUsage(self):
@@ -527,3 +547,9 @@ class SmaliChecks:
 
     def getDynamicRegisteredBroadcastReceiversLocations(self):
         return self.dynamicRegisteredBroadcastReceiversLocations
+
+    def getVulnerableContentProvidersSQLiLocations(self):
+        return self.vulnerableContentProvidersSQLiLocations
+
+    def getVulnerableContentProvidersPathTraversalLocations(self):
+        return self.vulnerableContentProvidersPathTraversalLocations

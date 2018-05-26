@@ -361,6 +361,22 @@ class ApkXmind:
         topicElement.getSubTopicByIndex(0).setURLHyperlink \
             ("https://github.com/OWASP/owasp-mstg/blob/master/Document/0x05h-Testing-Platform-Interaction.md#testing-for-sensitive-functionality-exposure-through-ipc")
 
+        if(len(self.app.smaliChecks.getVulnerableContentProvidersSQLiLocations()) > 0):
+            contentProviderSQLi = TopicElement()
+            contentProviderSQLi.addMarker('flag-yellow')
+            contentProviderSQLi.setTitle("Possibility of SQL Injection in exported ContentProvider")
+            self.createSubTopics(contentProviderSQLi,self.app.smaliChecks.getVulnerableContentProvidersSQLiLocations())
+            topicElement.addSubTopic(contentProviderSQLi)
+
+        if (len(self.app.smaliChecks.getVulnerableContentProvidersPathTraversalLocations()) > 0):
+            contentProviderPathTraversal = TopicElement()
+            contentProviderPathTraversal.addMarker('flag-yellow')
+            contentProviderPathTraversal.setTitle("Possibility of Path Traversal in exported ContentProvider")
+            self.createSubTopics(contentProviderPathTraversal, self.app.smaliChecks.getVulnerableContentProvidersPathTraversalLocations())
+            topicElement.addSubTopic(contentProviderPathTraversal)
+
+
+
         debuggableEvidenceTopic = TopicElement()
         debuggableEvidenceTopic.setURLHyperlink("https://github.com/OWASP/owasp-mstg/blob/master//Document/0x05i-Testing-Code-Quality-and-Build-Settings.md#testing-if-the-app-is-debuggable")
         if self.app.isDebuggable() == "Yes":
