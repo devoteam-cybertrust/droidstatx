@@ -50,7 +50,7 @@ class App:
   targetSDKVersion = ""
   versionCode= ""
   versionName= ""
-  codeNames={"3":"Cupcake 1.5","4":"Donut 1.6","5":"Eclair 2.0","6":"Eclair 2.0.1","7":"Eclair 2.1","8":"Froyo 2.2.x","9":"Gingerbread 2.3 - 2.3.2","10":"Gingerbread 2.3.3 - 2.3.7","11":"Honeycomb 3.0","12":"Honeycomb 3.1","13":"Honeycomb 3.2.x","14":"Ice Cream Sandswich 4.0.1 - 4.0.2","15":"Ice Cream Sandswich 4.0.3 - 4.0.4","16":"Jelly Bean 4.1.x","17":"Jelly Bean 4.2.x","18":"Jelly Bean 4.3.x","19":"KitKat 4.4 - 4.4.4","21":"Lolipop 5.0","22":"Lolipop 5.1","23":"Marshmallow 6.0","24":"Nougat 7.0","25":"Nougat 7.1","26":"Oreo 8.0","27":"Oreo 8.1.0"}
+  codeNames={"3":"Cupcake 1.5","4":"Donut 1.6","5":"Eclair 2.0","6":"Eclair 2.0.1","7":"Eclair 2.1","8":"Froyo 2.2.x","9":"Gingerbread 2.3 - 2.3.2","10":"Gingerbread 2.3.3 - 2.3.7","11":"Honeycomb 3.0","12":"Honeycomb 3.1","13":"Honeycomb 3.2.x","14":"Ice Cream Sandswich 4.0.1 - 4.0.2","15":"Ice Cream Sandswich 4.0.3 - 4.0.4","16":"Jelly Bean 4.1.x","17":"Jelly Bean 4.2.x","18":"Jelly Bean 4.3.x","19":"KitKat 4.4 - 4.4.4","21":"Lolipop 5.0","22":"Lolipop 5.1","23":"Marshmallow 6.0","24":"Nougat 7.0","25":"Nougat 7.1","26":"Oreo 8.0","27":"Oreo 8.1.0","28":"P "}
   sha256 = ""
   packageName = ""
   debuggable = False
@@ -127,11 +127,22 @@ class App:
     root = tree.getroot()
     for child in root:
       if child.tag == "base-config":
+        domainConfig = {'domains':[],'allowClearText':True,'allowUserCA':False,'pinning':False,'pinningExpiration':''}
+        if 'cleartextTrafficPermitted' in child.attrib:
+          if child.attrib['cleartextTrafficPermitted'] == "false":
+            domainConfig['allowClearText'] = False
         for sub in child:
+          if sub.tag == "domain":
+            domainConfig['domains'].append(sub.text)
           if sub.tag == "trust-anchors":
-            print(sub.tag, sub.attrib, sub.text)
             for certificates in sub:
-              print(certificates.tag, certificates.attrib)
+              if certificates.attrib['src'] == "user":
+                domainConfig['allowUserCA'] = True
+          if sub.tag == "pin-set":
+            domainConfig['pinning'] = True
+            if 'expiration' in sub.attrib :
+              domainConfig['pinningExpiration']  = sub.attrib['expiration']
+        self.networkSecurityConfigDomains.append(domainConfig)
       if child.tag == "domain-config":
         domainConfig = {'domains':[],'allowClearText':True,'allowUserCA':False,'pinning':False,'pinningExpiration':''}
         if 'cleartextTrafficPermitted' in child.attrib:
@@ -302,9 +313,13 @@ class App:
       self.checkForSecretCodes(provider)
       if provider.get(self.NS_ANDROID+"exported") == 'true':
         self.exportedProviders.append(providerName)
+        self.smaliChecks.determineContentProviderSQLi(providerName)
+        self.smaliChecks.determineContentProviderPathTraversal(providerName)
       elif provider.get(self.NS_ANDROID+"exported") != 'false':
         if self.minSDKVersion <=16:
           self.extractComponentPermission(provider)
+          self.smaliChecks.determineContentProviderSQLi(providerName)
+          self.smaliChecks.determineContentProviderPathTraversal(providerName)
           self.exportedProviders.append(providerName+" * In devices <= API 16 (Jelly Bean 4.1.x)")
 
   # Determine exported Services taking into account the existence of exported attribute or the presence of intent-filters

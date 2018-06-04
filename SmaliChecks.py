@@ -303,6 +303,7 @@ class SmaliChecks:
                     indexList = self.findInstructionIndex(instructions,"")
 
     def determineContentProviderPathTraversal(self,provider):
+	provider = provider.replace("$","\$")
         location = self.checkForExistenceInFolder(".class .* L"+provider.replace(".","/"),self.getSmaliPaths())
         instructions = self.getMethodCompleteInstructions('/.method public openFile(Landroid\/net\/Uri;Ljava\/lang\/String;)Landroid\/os\/ParcelFileDescriptor;/,/^.end method/p', location[0])
         indexList = self.findInstructionIndex(instructions,"Ljava\/io\/File;->getCanonicalPath\(\)")
@@ -311,6 +312,7 @@ class SmaliChecks:
 
 
     def determineContentProviderSQLi(self,provider):
+	provider = provider.replace("$","\$")
         location = self.checkForExistenceInFolder(".class .* L"+provider.replace(".","/"),self.getSmaliPaths())
         instructions = self.getMethodCompleteInstructions('/.method public query(Landroid\/net\/Uri;\[Ljava\/lang\/String;Ljava\/lang\/String;\[Ljava\/lang\/String;Ljava\/lang\/String;)Landroid\/database\/Cursor;/,/^.end method/p', location[0])
         indexList = self.findInstructionIndex(instructions,"invoke-virtual(.*) {(.*)}, Landroid\/database\/sqlite\/SQLiteDatabase;->query")
