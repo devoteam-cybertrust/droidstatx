@@ -124,3 +124,13 @@ Right now, this standalone module is being released as a quick win, but sometime
 Based on the work started on 2015, and since I wanted to learn and improve my understanding of Dalvik Bytecode, I created all the static checks from scratch, following my own thinking/approach. Other tools’ approaches will differ.
 
 That being said, I've tested the tool against the top 30 applications in the Play Store, around 60 other applications, including several vulnerable applications created for the effect, and manually performed the review on all of them to try and guarantee the tool’s accuracy and completeness but there may exist scenarios where the tool will not behave correctly; if you find any bugs, or incorrect or missing information,please create an Issue on the project.
+
+**References**
+* [Hacking Androids for fun and Profit - Riley Hassel](http://conference.hitb.org/hitbsecconf2011kul/materials/D1T1%20-*%20Riley%20Hassell%20-%20Exploiting%20Androids%20for%20Fun%20and%20Profit.pdf)
+* [Android: From Reversing to Decompilation - Anthony Desnos, Geoffroy Gueguen](https://media.blackhat.com/bh-ad-11/Desnos/bh-ad-11-DesnosGueguen-Andriod-Reversing_to_Decompilation_Slides.pdf)
+* [Automated Analysis and Deobfuscation of Android Apps & Malware - Jurriaan Bremer](http://jbremer.org/wp-posts/athcon.pdf)
+* [Android Secure Coding - Hiroshi Kumagai & Masaki Kubo](https://www.jpcert.or.jp/present/2014/20140910android-sc.pdf)
+* Android Hacker's Handbook (Book)
+* Android Security Internals (Book)
+* The Mobile Application Hacker's Handbook (Book)
+
