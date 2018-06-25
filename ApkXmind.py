@@ -70,10 +70,11 @@ class ApkXmind:
         topicElement.setTitle \
             (self.app.getMinSDKVersion( ) +" ( " +self.app.getCodeName(self.app.getMinSDKVersion() ) +")")
         informationGatheringTopic.getSubTopicByIndex(0).getSubTopicByIndex(3).addSubTopic(topicElement)
-
         topicElement = TopicElement()
-        topicElement.setTitle \
-            (self.app.getTargetSDKVersion() + " ( " + self.app.getCodeName(self.app.getTargetSDKVersion()) + ")")
+	if self.app.getTargetSDKVersion() == None:
+		topicElement.setTitle("Not defined")
+	else:
+        	topicElement.setTitle(self.app.getTargetSDKVersion() + " ( " + self.app.getCodeName(self.app.getTargetSDKVersion()) + ")")
         informationGatheringTopic.getSubTopicByIndex(0).getSubTopicByIndex(4).addSubTopic(topicElement)
 
         topicElement = TopicElement()
