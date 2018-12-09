@@ -1,3 +1,14 @@
+Note
+====
+
+Current development takes now place at https://github.com/clviper/droidstatx
+
+You can update your local copy to track the new repo:
+
+    git remote set-url origin https://github.com/clviper/droidstatx.git 
+ 
+ 
+
 **TL;DR**
 
 * Python tool that generates an Xmind map with all the information gathered and any evidence of possible vulnerabilities identified via static analysis.
